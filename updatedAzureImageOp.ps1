@@ -139,15 +139,24 @@ Write-Host "Using subscription: $targetSubscription" -ForegroundColor Green
 
 # Get available storage accounts
 $storageAccounts = @()
-$storageAccounts += Get-AzureRmStorageAccount -WarningAction SilentlyContinue
+$tempStorageAccountsArray = @()
+$tempStorageAccountsArray += Get-AzureRmStorageAccount -WarningAction SilentlyContinue
 
-if($storageAccounts.Count -eq 0)
+if($tempStorageAccountsArray.Count -eq 0)
 {
     Write-Host "No storage accounts were found in the subscription [$targetSubscription.Name]. Exiting script." -ForegroundColor Red
     Read-Host "Press [Enter] to exit..."
     return
 }
 
+foreach($storageAccount in $tempStorageAccountsArray)
+    {
+		#if($storageAccount.StorageAccountName -eq "storageprotyrektco10live") 
+		#{
+			$storageAccounts += $storageAccount
+		#}
+    }
+	
 # If more than one storage account available, show a selection prompt to user
 if($storageAccounts.Count -gt 1)
 {
@@ -155,9 +164,9 @@ if($storageAccounts.Count -gt 1)
     $i = 0
     foreach($storageAccount in $storageAccounts)
     {
-        $choice = New-Object System.Management.Automation.Host.ChoiceDescription "&$i. $($storageAccount.StorageAccountName)","Use this storage account"
-        $choices += $choice
-        $i++
+		$choice = New-Object System.Management.Automation.Host.ChoiceDescription "&$i. $($storageAccount.StorageAccountName)","Use this storage account"
+		$choices += $choice
+		$i++
     }
 
     $cancelChoice = New-Object System.Management.Automation.Host.ChoiceDescription "(&Cancel)","Exits the script"
@@ -167,7 +176,7 @@ if($storageAccounts.Count -gt 1)
     $title = "Select storage account"
     $message = "More than one storage account is available in subscription [$targetSubscription]. Which one has the target storage container?"
     $selectionIndex = $host.ui.PromptForChoice($title, $message, $choices, 0) 
-
+	
     if($choices[$selectionIndex].Label -eq "(Cancel)")
     {
         Write-Host Script cancelled
